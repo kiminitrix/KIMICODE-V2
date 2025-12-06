@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Button, FileUpload, fileToBase64, toDataUrl, Modal } from '../components/Shared';
+import { Button, fileToBase64, toDataUrl, Modal } from '../components/Shared';
 import { editImage } from '../services/geminiService';
 import { SavedImage, EditableState } from '../types';
-import { Wand2, Download, Save, Maximize2, Trash2, Loader2, ArrowRight } from 'lucide-react';
+import { Wand2, Download, Save, Maximize2, Trash2, Loader2, ArrowRight, Plus } from 'lucide-react';
 
 interface EditableProps {
   state: EditableState;
@@ -58,7 +58,23 @@ const Editable: React.FC<EditableProps> = ({ state, updateState, onSave }) => {
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-slate-800 dark:text-white">Original Image</h3>
           {!sourceImage ? (
-            <FileUpload onFileSelect={handleUpload} />
+                <label className="w-full h-64 flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer transition-all text-slate-400 hover:text-purple-500 bg-slate-50 dark:bg-slate-900/50 gap-3">
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      onChange={(e) => {
+                        if (e.target.files) {
+                          handleUpload(Array.from(e.target.files));
+                        }
+                      }} 
+                      accept="image/*" 
+                    />
+                    <Plus size={48} strokeWidth={1.5} />
+                    <div className="text-center">
+                      <p className="text-sm font-semibold">Click to upload file</p>
+                      <p className="text-xs opacity-70 mt-1">PNG, JPG (MAX. 5MB)</p>
+                    </div>
+                </label>
           ) : (
             <div className="relative rounded-2xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-800">
                <img src={toDataUrl(sourceImage)} alt="Original" className="w-full object-cover" />
