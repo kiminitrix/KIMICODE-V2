@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button, fileToBase64, toDataUrl, Modal } from '../components/Shared';
 import { editImage } from '../services/geminiService';
@@ -17,6 +16,7 @@ const Editable: React.FC<EditableProps> = ({ state, updateState, onSave }) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [viewImage, setViewImage] = useState<string | null>(null);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
   const handleUpload = async (files: File[]) => {
     if (files.length > 0) {
@@ -40,8 +40,14 @@ const Editable: React.FC<EditableProps> = ({ state, updateState, onSave }) => {
     }
   };
 
-  const handleSave = async () => {
+  const handleSaveClick = () => {
     if (!resultImage) return;
+    setShowSaveConfirm(true);
+  };
+
+  const executeSave = async () => {
+    if (!resultImage) return;
+    setShowSaveConfirm(false);
     
     setSaving(true);
     try {
@@ -128,7 +134,7 @@ const Editable: React.FC<EditableProps> = ({ state, updateState, onSave }) => {
                  <img src={toDataUrl(resultImage)} alt="Result" className="w-full rounded-2xl shadow-lg" />
                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center gap-4 backdrop-blur-sm">
                     <Button onClick={() => setViewImage(resultImage)} variant="secondary" className="bg-white/90 dark:bg-black/80"><Maximize2 size={20}/></Button>
-                    <Button onClick={handleSave} variant="primary" disabled={saving}>
+                    <Button onClick={handleSaveClick} variant="primary" disabled={saving}>
                        {saving ? <Loader2 className="animate-spin" /> : <Save size={20}/>}
                     </Button>
                  </div>
@@ -159,6 +165,26 @@ const Editable: React.FC<EditableProps> = ({ state, updateState, onSave }) => {
 
        <Modal isOpen={!!viewImage} onClose={() => setViewImage(null)}>
         {viewImage && <img src={toDataUrl(viewImage)} alt="Full View" className="max-w-full max-h-[85vh] rounded-lg shadow-2xl mx-auto" />}
+      </Modal>
+
+      <Modal isOpen={showSaveConfirm} onClose={() => setShowSaveConfirm(false)} maxWidth="max-w-md">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-2xl border border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                    <CloudUpload size={24} />
+                </div>
+                <div>
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white">Save to Cloud?</h3>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
+                        This will upload your edited image to the cloud storage.
+                    </p>
+                </div>
+                <div className="flex gap-3 w-full mt-2">
+                    <Button variant="secondary" onClick={() => setShowSaveConfirm(false)} className="flex-1">Cancel</Button>
+                    <Button onClick={executeSave} className="flex-1">Confirm Upload</Button>
+                </div>
+            </div>
+        </div>
       </Modal>
     </div>
   );

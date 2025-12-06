@@ -46,11 +46,11 @@ export const FileUpload = ({ onFileSelect, multiple = false, label = "Upload Ima
   );
 };
 
-export const Modal = ({ isOpen, onClose, children }: { isOpen: boolean, onClose: () => void, children?: React.ReactNode }) => {
+export const Modal = ({ isOpen, onClose, children, maxWidth = "max-w-5xl" }: { isOpen: boolean, onClose: () => void, children?: React.ReactNode, maxWidth?: string }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="relative max-w-5xl max-h-[90vh] w-full" onClick={e => e.stopPropagation()}>
+      <div className={`relative ${maxWidth} max-h-[90vh] w-full`} onClick={e => e.stopPropagation()}>
         <button onClick={onClose} className="absolute -top-12 right-0 text-white hover:text-purple-400 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>

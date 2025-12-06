@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button, fileToBase64, toDataUrl, Modal } from '../components/Shared';
 import { GeminiModel, AspectRatio, ImageSize, SavedImage, ImaginableState } from '../types';
@@ -19,6 +18,7 @@ const Imaginable: React.FC<ImaginableProps> = ({ state, updateState, onSave }) =
   const [viewImage, setViewImage] = useState<string | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
+  const [itemToSave, setItemToSave] = useState<{ id: string; data: string; prompt: string; model: GeminiModel } | null>(null);
 
   const handleRefUpload = async (files: File[]) => {
     const promises = files.map(f => fileToBase64(f));
@@ -62,9 +62,16 @@ const Imaginable: React.FC<ImaginableProps> = ({ state, updateState, onSave }) =
     }
   };
 
-  const handleSave = async (result: { id: string; data: string; prompt: string; model: GeminiModel }) => {
+  const confirmSave = (result: { id: string; data: string; prompt: string; model: GeminiModel }) => {
     if (savedIds.has(result.id) || savingIds.has(result.id)) return;
-    
+    setItemToSave(result);
+  };
+
+  const executeSave = async () => {
+    if (!itemToSave) return;
+    const result = itemToSave;
+    setItemToSave(null);
+
     // Set saving state for this specific item
     setSavingIds(prev => {
         const next = new Set(prev);
@@ -253,7 +260,7 @@ const Imaginable: React.FC<ImaginableProps> = ({ state, updateState, onSave }) =
                         <Button variant="secondary" onClick={() => handleDownload(result.data)} className="px-3 py-1.5 text-xs" type="button"><Download size={14}/></Button>
                         <Button 
                            variant={isSaved ? "primary" : "secondary"} 
-                           onClick={() => handleSave(result)} 
+                           onClick={() => confirmSave(result)} 
                            className={`px-3 py-1.5 text-xs transition-all ${isSaved ? 'bg-green-500 hover:bg-green-600 text-white ring-0' : ''}`} 
                            type="button"
                            disabled={isSaved || isSaving}
@@ -274,6 +281,26 @@ const Imaginable: React.FC<ImaginableProps> = ({ state, updateState, onSave }) =
 
       <Modal isOpen={!!viewImage} onClose={() => setViewImage(null)}>
         {viewImage && <img src={toDataUrl(viewImage)} alt="Full View" className="max-w-full max-h-[85vh] rounded-lg shadow-2xl mx-auto" />}
+      </Modal>
+
+      <Modal isOpen={!!itemToSave} onClose={() => setItemToSave(null)} maxWidth="max-w-md">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-2xl border border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                    <CloudUpload size={24} />
+                </div>
+                <div>
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white">Save to Cloud?</h3>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
+                        This will upload your image to the cloud storage to make it accessible across devices.
+                    </p>
+                </div>
+                <div className="flex gap-3 w-full mt-2">
+                    <Button variant="secondary" onClick={() => setItemToSave(null)} className="flex-1">Cancel</Button>
+                    <Button onClick={executeSave} className="flex-1">Confirm Upload</Button>
+                </div>
+            </div>
+        </div>
       </Modal>
     </div>
   );
