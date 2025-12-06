@@ -82,8 +82,8 @@ const Promptable: React.FC<PromptableProps> = ({ state, updateState }) => {
                   </div>
                </label>
             ) : (
-               <div className="relative w-full h-64 rounded-3xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 group">
-                 <img src={toDataUrl(image)} alt="Analysis Source" className="w-full h-full object-cover" />
+               <div className="relative w-full rounded-3xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 group">
+                 <img src={toDataUrl(image)} alt="Analysis Source" className="w-full h-auto block" />
                  <button onClick={() => updateState({ image: null })} className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white">
                     <Trash2 size={24} />
                  </button>
