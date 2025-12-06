@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { SavedImage } from '../types';
 import { toDataUrl, Modal, Button } from '../components/Shared';
-import { Trash2, Download, Maximize2, LayoutGrid, X, Calendar, Cpu, Tag } from 'lucide-react';
+import { Trash2, Download, Maximize2, LayoutGrid, X, Calendar, Cpu, Tag, Cloud } from 'lucide-react';
 
 interface CollectableProps {
   images: SavedImage[];
@@ -51,8 +52,15 @@ const Collectable: React.FC<CollectableProps> = ({ images, onRemove }) => {
                   </div>
                </div>
                
-               <div className="absolute top-2 left-2 px-2 py-1 bg-black/50 backdrop-blur-sm rounded text-[10px] font-bold text-white uppercase">
-                 {img.type}
+               <div className="absolute top-2 left-2 flex gap-2">
+                 <div className="px-2 py-1 bg-black/50 backdrop-blur-sm rounded text-[10px] font-bold text-white uppercase">
+                   {img.type}
+                 </div>
+                 {img.cloudUrl && (
+                   <div className="p-1 bg-purple-500/80 backdrop-blur-sm rounded-full text-white" title="Saved to Cloud">
+                     <Cloud size={10} fill="currentColor" />
+                   </div>
+                 )}
                </div>
             </div>
           ))}
@@ -109,6 +117,12 @@ const Collectable: React.FC<CollectableProps> = ({ images, onRemove }) => {
                           <Tag size={16} className="text-purple-500" />
                           <span className="capitalize font-medium">{viewImage.type}</span>
                        </div>
+                       {viewImage.cloudUrl && (
+                         <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                            <Cloud size={16} className="text-purple-500" />
+                            <span className="font-medium truncate max-w-[200px]" title={viewImage.cloudUrl}>Synced to Cloud</span>
+                         </div>
+                       )}
                    </div>
                 </div>
 

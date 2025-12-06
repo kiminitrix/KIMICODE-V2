@@ -1,3 +1,4 @@
+
 export interface SavedImage {
   id: string;
   data: string; // Base64
@@ -5,6 +6,7 @@ export interface SavedImage {
   timestamp: number;
   model: string;
   type: 'generated' | 'edited';
+  cloudUrl?: string; // URL from cloud storage
 }
 
 export interface PromptHistory {

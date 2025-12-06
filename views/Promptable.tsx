@@ -11,7 +11,7 @@ interface PromptableProps {
 
 const Promptable: React.FC<PromptableProps> = ({ state, updateState }) => {
   const { image, history } = state;
-  const [loading, setLoading] = useState(false);
+  const [loadingType, setLoadingType] = useState<'image' | 'video' | null>(null);
   
   const handleUpload = async (files: File[]) => {
     if (files.length > 0) {
@@ -22,7 +22,7 @@ const Promptable: React.FC<PromptableProps> = ({ state, updateState }) => {
 
   const generatePrompt = async (type: 'image' | 'video') => {
     if (!image) return;
-    setLoading(true);
+    setLoadingType(type);
     try {
       const text = await analyzeImageForPrompt(image, type);
       const newItem: PromptHistory = {
@@ -36,7 +36,7 @@ const Promptable: React.FC<PromptableProps> = ({ state, updateState }) => {
     } catch (e) {
       alert("Analysis failed.");
     } finally {
-      setLoading(false);
+      setLoadingType(null);
     }
   };
 
@@ -82,8 +82,8 @@ const Promptable: React.FC<PromptableProps> = ({ state, updateState }) => {
                   </div>
                </label>
             ) : (
-               <div className="relative w-full rounded-3xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 group">
-                 <img src={toDataUrl(image)} alt="Analysis Source" className="w-full h-auto block" />
+               <div className="relative w-full h-64 rounded-3xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 group bg-slate-100 dark:bg-slate-950">
+                 <img src={toDataUrl(image)} alt="Analysis Source" className="w-full h-full object-contain" />
                  <button onClick={() => updateState({ image: null })} className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white">
                     <Trash2 size={24} />
                  </button>
@@ -99,11 +99,20 @@ const Promptable: React.FC<PromptableProps> = ({ state, updateState }) => {
                 </p>
 
                 <div className="flex flex-wrap gap-4">
-                   <Button onClick={() => generatePrompt('image')} disabled={!image || loading} className="flex-1">
-                      {loading ? <Loader2 className="animate-spin"/> : <><ImageIcon size={18} /> Image Prompt</>}
+                   <Button 
+                      onClick={() => generatePrompt('image')} 
+                      disabled={!image || loadingType !== null} 
+                      className="flex-1"
+                   >
+                      {loadingType === 'image' ? <><Loader2 className="animate-spin mr-2" /> Generating Image Prompt...</> : <><ImageIcon size={18} /> Image Prompt</>}
                    </Button>
-                   <Button onClick={() => generatePrompt('video')} disabled={!image || loading} variant="secondary" className="flex-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
-                      {loading ? <Loader2 className="animate-spin"/> : <><Video size={18} /> Video Prompt</>}
+                   <Button 
+                      onClick={() => generatePrompt('video')} 
+                      disabled={!image || loadingType !== null} 
+                      variant="secondary" 
+                      className="flex-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+                   >
+                      {loadingType === 'video' ? <><Loader2 className="animate-spin mr-2" /> Generating Video Prompt...</> : <><Video size={18} /> Video Prompt</>}
                    </Button>
                 </div>
              </div>

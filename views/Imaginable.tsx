@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
 import { Button, fileToBase64, toDataUrl, Modal } from '../components/Shared';
 import { GeminiModel, AspectRatio, ImageSize, SavedImage, ImaginableState } from '../types';
 import { generateImages, enhancePrompt } from '../services/geminiService';
-import { Wand2, X, Download, Save, Maximize2, Trash2, ImagePlus, Loader2, Plus, Check } from 'lucide-react';
+import { uploadToCloud } from '../services/storageService';
+import { Wand2, X, Download, Save, Maximize2, Trash2, ImagePlus, Loader2, Plus, Check, CloudUpload } from 'lucide-react';
 
 interface ImaginableProps {
   state: ImaginableState;
@@ -16,6 +18,7 @@ const Imaginable: React.FC<ImaginableProps> = ({ state, updateState, onSave }) =
   const [enhancing, setEnhancing] = useState(false);
   const [viewImage, setViewImage] = useState<string | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
 
   const handleRefUpload = async (files: File[]) => {
     const promises = files.map(f => fileToBase64(f));
@@ -59,23 +62,45 @@ const Imaginable: React.FC<ImaginableProps> = ({ state, updateState, onSave }) =
     }
   };
 
-  const handleSave = (result: { id: string; data: string; prompt: string; model: GeminiModel }) => {
-    if (savedIds.has(result.id)) return;
+  const handleSave = async (result: { id: string; data: string; prompt: string; model: GeminiModel }) => {
+    if (savedIds.has(result.id) || savingIds.has(result.id)) return;
     
-    onSave({
-      id: Date.now().toString() + Math.random(),
-      data: result.data,
-      prompt: result.prompt,
-      timestamp: Date.now(),
-      model: result.model,
-      type: 'generated'
-    });
-    
-    setSavedIds(prev => {
+    // Set saving state for this specific item
+    setSavingIds(prev => {
         const next = new Set(prev);
         next.add(result.id);
         return next;
     });
+
+    try {
+        // Upload to cloud
+        const cloudUrl = await uploadToCloud(result.data, 'generated');
+
+        onSave({
+          id: Date.now().toString() + Math.random(),
+          data: result.data,
+          prompt: result.prompt,
+          timestamp: Date.now(),
+          model: result.model,
+          type: 'generated',
+          cloudUrl: cloudUrl
+        });
+        
+        setSavedIds(prev => {
+            const next = new Set(prev);
+            next.add(result.id);
+            return next;
+        });
+    } catch (e) {
+        console.error("Failed to save to cloud", e);
+        alert("Failed to save to cloud storage.");
+    } finally {
+        setSavingIds(prev => {
+            const next = new Set(prev);
+            next.delete(result.id);
+            return next;
+        });
+    }
   };
 
   const handleDownload = (base64: string) => {
@@ -212,6 +237,7 @@ const Imaginable: React.FC<ImaginableProps> = ({ state, updateState, onSave }) =
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                {generatedResults.map((result) => {
                  const isSaved = savedIds.has(result.id);
+                 const isSaving = savingIds.has(result.id);
                  return (
                  <div key={result.id} className="group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
                    <div className="aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
@@ -230,9 +256,9 @@ const Imaginable: React.FC<ImaginableProps> = ({ state, updateState, onSave }) =
                            onClick={() => handleSave(result)} 
                            className={`px-3 py-1.5 text-xs transition-all ${isSaved ? 'bg-green-500 hover:bg-green-600 text-white ring-0' : ''}`} 
                            type="button"
-                           disabled={isSaved}
+                           disabled={isSaved || isSaving}
                         >
-                           {isSaved ? <Check size={14}/> : <Save size={14}/>}
+                           {isSaving ? <Loader2 size={14} className="animate-spin" /> : isSaved ? <CloudUpload size={14}/> : <Save size={14}/>}
                         </Button>
                       </div>
                       <button onClick={() => updateState({ generatedResults: generatedResults.filter((r) => r.id !== result.id) })} className="text-slate-400 hover:text-red-500 transition-colors" type="button">
