@@ -64,7 +64,7 @@ const Promptable: React.FC<PromptableProps> = ({ state, updateState }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-1 flex justify-center md:justify-start">
             {!image ? (
-               <label className="w-40 h-40 flex items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer transition-all text-slate-400 hover:text-purple-500 bg-slate-50 dark:bg-slate-900/50">
+               <label className="w-full h-64 flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer transition-all text-slate-400 hover:text-purple-500 bg-slate-50 dark:bg-slate-900/50 gap-3">
                   <input 
                     type="file" 
                     className="hidden" 
@@ -76,9 +76,13 @@ const Promptable: React.FC<PromptableProps> = ({ state, updateState }) => {
                     accept="image/*" 
                   />
                   <Plus size={48} strokeWidth={1.5} />
+                  <div className="text-center">
+                    <p className="text-sm font-semibold">Click to upload file</p>
+                    <p className="text-xs opacity-70 mt-1">PNG, JPG (MAX. 5MB)</p>
+                  </div>
                </label>
             ) : (
-               <div className="relative w-40 h-40 rounded-2xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 group">
+               <div className="relative w-full h-64 rounded-3xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 group">
                  <img src={toDataUrl(image)} alt="Analysis Source" className="w-full h-full object-cover" />
                  <button onClick={() => updateState({ image: null })} className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white">
                     <Trash2 size={24} />
