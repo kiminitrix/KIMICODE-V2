@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Part } from "@google/genai";
 import { GeminiModel, ImageSize, AspectRatio } from "../types";
 
@@ -161,5 +162,36 @@ export const analyzeImageForPrompt = async (
   } catch (error) {
     console.error("Analysis failed", error);
     throw error;
+  }
+};
+
+export const convertMediaToText = async (
+  files: { mimeType: string; data: string }[]
+): Promise<string> => {
+  const ai = getAiClient();
+  const model = 'gemini-3-pro-preview'; // Strong multimodal model
+
+  const parts: Part[] = [];
+  
+  files.forEach(file => {
+      parts.push({
+          inlineData: {
+              mimeType: file.mimeType,
+              data: file.data
+          }
+      });
+  });
+
+  parts.push({ text: "Analyze these files. Convert any audio/video speech to text, extract text from images/documents, and provide a comprehensive description/transcription of the content. Organize the output clearly." });
+
+  try {
+      const response = await ai.models.generateContent({
+          model: model,
+          contents: { parts }
+      });
+      return response.text || "No text extracted.";
+  } catch (error) {
+      console.error("Conversion failed", error);
+      throw error;
   }
 };

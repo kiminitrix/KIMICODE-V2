@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button, fileToBase64, toDataUrl, Modal } from '../components/Shared';
 import { GeminiModel, AspectRatio, ImageSize, SavedImage, ImaginableState } from '../types';
@@ -231,9 +232,20 @@ const Imaginable: React.FC<ImaginableProps> = ({ state, updateState, onSave }) =
 
         {/* Results */}
         <div className="lg:col-span-2">
-           <h2 className="text-2xl font-bold mb-6 text-slate-800 dark:text-white flex items-center gap-2">
-             Results <span className="text-sm font-normal text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">{generatedResults.length}</span>
-           </h2>
+           <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                Results <span className="text-sm font-normal text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">{generatedResults.length}</span>
+              </h2>
+              {generatedResults.length > 0 && (
+                <button 
+                  onClick={() => updateState({ generatedResults: [] })}
+                  className="text-xs font-medium text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-900/10 px-3 py-1.5 rounded-lg transition-colors"
+                  title="Clear all results"
+                >
+                  Clear All
+                </button>
+              )}
+           </div>
            
            {generatedResults.length === 0 ? (
              <div className="flex flex-col items-center justify-center h-96 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-slate-400">
@@ -247,30 +259,57 @@ const Imaginable: React.FC<ImaginableProps> = ({ state, updateState, onSave }) =
                  const isSaving = savingIds.has(result.id);
                  return (
                  <div key={result.id} className="group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
-                   <div className="aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                   <div className="aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-800 relative">
                       <img src={toDataUrl(result.data)} alt="Generated" className="w-full h-full object-cover" />
-                   </div>
-                   
-                   <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => setViewImage(result.data)} className="p-2 bg-black/60 text-white rounded-full hover:bg-black/80 backdrop-blur-sm" type="button"><Maximize2 size={16}/></button>
+                      
+                      <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <button 
+                           onClick={() => setViewImage(result.data)} 
+                           className="p-2 bg-black/60 text-white rounded-full hover:bg-black/80 backdrop-blur-sm" 
+                           type="button"
+                           title="View Fullscreen"
+                         >
+                           <Maximize2 size={16}/>
+                         </button>
+                      </div>
                    </div>
 
-                   <div className="p-4 flex justify-between items-center bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
-                      <div className="flex gap-2">
-                        <Button variant="secondary" onClick={() => handleDownload(result.data)} className="px-3 py-1.5 text-xs" type="button"><Download size={14}/></Button>
-                        <Button 
-                           variant={isSaved ? "primary" : "secondary"} 
-                           onClick={() => confirmSave(result)} 
-                           className={`px-3 py-1.5 text-xs transition-all ${isSaved ? 'bg-green-500 hover:bg-green-600 text-white ring-0' : ''}`} 
-                           type="button"
-                           disabled={isSaved || isSaving}
+                   <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3 font-medium" title={result.prompt}>
+                        {result.prompt}
+                      </p>
+
+                      <div className="flex justify-between items-center">
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="secondary" 
+                            onClick={() => handleDownload(result.data)} 
+                            className="px-3 py-1.5 text-xs" 
+                            type="button"
+                            title="Download Image"
+                          >
+                            <Download size={14}/>
+                          </Button>
+                          <Button 
+                             variant={isSaved ? "primary" : "secondary"} 
+                             onClick={() => confirmSave(result)} 
+                             className={`px-3 py-1.5 text-xs transition-all ${isSaved ? 'bg-green-500 hover:bg-green-600 text-white ring-0' : ''}`} 
+                             type="button"
+                             disabled={isSaved || isSaving}
+                             title={isSaved ? "Saved to Cloud" : "Save to Cloud"}
+                          >
+                             {isSaving ? <Loader2 size={14} className="animate-spin" /> : isSaved ? <CloudUpload size={14}/> : <Save size={14}/>}
+                          </Button>
+                        </div>
+                        <button 
+                          onClick={() => updateState({ generatedResults: generatedResults.filter((r) => r.id !== result.id) })} 
+                          className="text-slate-400 hover:text-red-500 transition-colors" 
+                          type="button"
+                          title="Remove Result"
                         >
-                           {isSaving ? <Loader2 size={14} className="animate-spin" /> : isSaved ? <CloudUpload size={14}/> : <Save size={14}/>}
-                        </Button>
+                          <Trash2 size={18} />
+                        </button>
                       </div>
-                      <button onClick={() => updateState({ generatedResults: generatedResults.filter((r) => r.id !== result.id) })} className="text-slate-400 hover:text-red-500 transition-colors" type="button">
-                        <Trash2 size={18} />
-                      </button>
                    </div>
                  </div>
                )})}
@@ -297,7 +336,7 @@ const Imaginable: React.FC<ImaginableProps> = ({ state, updateState, onSave }) =
                 </div>
                 <div className="flex gap-3 w-full mt-2">
                     <Button variant="secondary" onClick={() => setItemToSave(null)} className="flex-1">Cancel</Button>
-                    <Button onClick={executeSave} className="flex-1">Confirm Upload</Button>
+                    <Button onClick={executeSave} className="flex-1">Confirm Cloud Upload</Button>
                 </div>
             </div>
         </div>

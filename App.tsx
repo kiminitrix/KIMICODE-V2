@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { SavedImage, AppView, ImaginableState, EditableState, PromptableState, GeminiModel } from './types';
+import { SavedImage, AppView, ImaginableState, EditableState, PromptableState, Any2TextState, GeminiModel } from './types';
 import Imaginable from './views/Imaginable';
 import Editable from './views/Editable';
 import Promptable from './views/Promptable';
 import Collectable from './views/Collectable';
-import { Sparkles, Image, Pencil, Scan, LayoutGrid, Sun, Moon, Menu, X } from 'lucide-react';
+import Any2Text from './views/Any2Text';
+import { Sparkles, Image, Pencil, Scan, LayoutGrid, Sun, Moon, Menu, X, FileText } from 'lucide-react';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.IMAGINABLE);
@@ -34,6 +35,12 @@ const App: React.FC = () => {
     history: []
   });
 
+  const [any2TextState, setAny2TextState] = useState<Any2TextState>({
+    files: [],
+    result: '',
+    isProcessing: false
+  });
+
   const updateImaginable = (updates: Partial<ImaginableState>) => 
     setImaginableState(prev => ({ ...prev, ...updates }));
 
@@ -42,6 +49,9 @@ const App: React.FC = () => {
 
   const updatePromptable = (updates: Partial<PromptableState>) => 
     setPromptableState(prev => ({ ...prev, ...updates }));
+
+  const updateAny2Text = (updates: Partial<Any2TextState>) => 
+    setAny2TextState(prev => ({ ...prev, ...updates }));
 
   // Load from local storage on mount
   useEffect(() => {
@@ -87,6 +97,7 @@ const App: React.FC = () => {
     { id: AppView.IMAGINABLE, label: 'Imaginable', icon: Image },
     { id: AppView.EDITABLE, label: 'Editable', icon: Pencil },
     { id: AppView.PROMPTABLE, label: 'Promptable', icon: Scan },
+    { id: AppView.ANY2TEXT, label: 'Any2Text', icon: FileText },
     { id: AppView.COLLECTABLE, label: 'Collectable', icon: LayoutGrid },
   ];
 
@@ -188,6 +199,12 @@ const App: React.FC = () => {
              <Promptable 
                state={promptableState}
                updateState={updatePromptable}
+             />
+           )}
+           {currentView === AppView.ANY2TEXT && (
+             <Any2Text 
+               state={any2TextState}
+               updateState={updateAny2Text}
              />
            )}
            {currentView === AppView.COLLECTABLE && (

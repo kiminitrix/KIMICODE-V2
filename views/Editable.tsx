@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button, fileToBase64, toDataUrl, Modal } from '../components/Shared';
 import { editImage } from '../services/geminiService';
 import { uploadToCloud } from '../services/storageService';
 import { SavedImage, EditableState } from '../types';
-import { Wand2, Download, Save, Maximize2, Trash2, Loader2, ArrowRight, Plus, CloudUpload } from 'lucide-react';
+import { Wand2, Download, Save, Maximize2, Trash2, Loader2, ArrowRight, Plus, CloudUpload, Check } from 'lucide-react';
 
 interface EditableProps {
   state: EditableState;
@@ -15,8 +16,14 @@ const Editable: React.FC<EditableProps> = ({ state, updateState, onSave }) => {
   const { sourceImage, prompt, resultImage } = state;
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [viewImage, setViewImage] = useState<string | null>(null);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+
+  // Reset saved state when a new result is generated
+  useEffect(() => {
+    setIsSaved(false);
+  }, [resultImage]);
 
   const handleUpload = async (files: File[]) => {
     if (files.length > 0) {
@@ -41,7 +48,7 @@ const Editable: React.FC<EditableProps> = ({ state, updateState, onSave }) => {
   };
 
   const handleSaveClick = () => {
-    if (!resultImage) return;
+    if (!resultImage || isSaved) return;
     setShowSaveConfirm(true);
   };
 
@@ -62,9 +69,10 @@ const Editable: React.FC<EditableProps> = ({ state, updateState, onSave }) => {
           type: 'edited',
           cloudUrl: cloudUrl
         });
-        alert("Saved to cloud collection!");
+        
+        setIsSaved(true);
     } catch (e) {
-        alert("Failed to save.");
+        alert("Failed to save to cloud.");
     } finally {
         setSaving(false);
     }
@@ -134,8 +142,13 @@ const Editable: React.FC<EditableProps> = ({ state, updateState, onSave }) => {
                  <img src={toDataUrl(resultImage)} alt="Result" className="w-full rounded-2xl shadow-lg" />
                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center gap-4 backdrop-blur-sm">
                     <Button onClick={() => setViewImage(resultImage)} variant="secondary" className="bg-white/90 dark:bg-black/80"><Maximize2 size={20}/></Button>
-                    <Button onClick={handleSaveClick} variant="primary" disabled={saving}>
-                       {saving ? <Loader2 className="animate-spin" /> : <Save size={20}/>}
+                    <Button 
+                        onClick={handleSaveClick} 
+                        variant={isSaved ? "primary" : "primary"} 
+                        disabled={saving || isSaved}
+                        className={isSaved ? "bg-green-500 hover:bg-green-600 text-white border-none" : ""}
+                    >
+                       {saving ? <Loader2 className="animate-spin" /> : isSaved ? <CloudUpload size={20}/> : <Save size={20}/>}
                     </Button>
                  </div>
                </div>
@@ -181,7 +194,7 @@ const Editable: React.FC<EditableProps> = ({ state, updateState, onSave }) => {
                 </div>
                 <div className="flex gap-3 w-full mt-2">
                     <Button variant="secondary" onClick={() => setShowSaveConfirm(false)} className="flex-1">Cancel</Button>
-                    <Button onClick={executeSave} className="flex-1">Confirm Upload</Button>
+                    <Button onClick={executeSave} className="flex-1">Confirm Cloud Upload</Button>
                 </div>
             </div>
         </div>

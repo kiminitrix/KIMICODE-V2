@@ -22,6 +22,7 @@ export enum AppView {
   EDITABLE = 'Editable',
   PROMPTABLE = 'Promptable',
   COLLECTABLE = 'Collectable',
+  ANY2TEXT = 'Any2Text',
 }
 
 export type AspectRatio = '1:1' | '3:4' | '4:3' | '9:16' | '16:9';
@@ -61,4 +62,10 @@ export interface EditableState {
 export interface PromptableState {
   image: string | null;
   history: PromptHistory[];
+}
+
+export interface Any2TextState {
+  files: { name: string; type: string; data: string }[];
+  result: string;
+  isProcessing: boolean;
 }
